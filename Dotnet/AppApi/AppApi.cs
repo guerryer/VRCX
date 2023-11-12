@@ -128,31 +128,6 @@ namespace VRCX
         //     }
         // }
 
-        public void SetVR(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand)
-        {
-            VRCXVR.Instance.SetActive(active, hmdOverlay, wristOverlay, menuButton, overlayHand);
-        }
-
-        public void RefreshVR()
-        {
-            VRCXVR.Instance.Restart();
-        }
-
-        public void RestartVR()
-        {
-            VRCXVR.Instance.Restart();
-        }
-
-        /// <summary>
-        /// Returns an array of arrays containing information about the connected VR devices.
-        /// Each sub-array contains the type of device and its current state
-        /// </summary>
-        /// <returns>An array of arrays containing information about the connected VR devices.</returns>
-        public string[][] GetVRDevices()
-        {
-            return VRCXVR.Instance.GetDevices();
-        }
-
         /// <summary>
         /// Returns the current CPU usage as a percentage.
         /// </summary>
@@ -252,22 +227,6 @@ namespace VRCX
         {
             if (MainForm.Instance?.Browser != null && !MainForm.Instance.Browser.IsLoading && MainForm.Instance.Browser.CanExecuteJavascriptInMainFrame)
                 MainForm.Instance.Browser.ExecuteScriptAsync($"$app.{function}", json);
-        }
-
-        public void ExecuteVrFeedFunction(string function, string json)
-        {
-            if (VRCXVR._browser1 == null) return;
-            if (VRCXVR._browser1.IsLoading)
-                VRCXVR.Instance.Restart();
-            VRCXVR._browser1.ExecuteScriptAsync($"$app.{function}", json);
-        }
-
-        public void ExecuteVrOverlayFunction(string function, string json)
-        {
-            if (VRCXVR._browser2 == null) return;
-            if (VRCXVR._browser2.IsLoading)
-                VRCXVR.Instance.Restart();
-            VRCXVR._browser2.ExecuteScriptAsync($"$app.{function}", json);
         }
 
         /// <summary>

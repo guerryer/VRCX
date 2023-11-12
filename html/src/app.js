@@ -5471,7 +5471,6 @@ speechSynthesis.getVoices();
             }
             this.lastLocationReset();
             this.clearNowPlaying();
-            this.updateVRLastLocation();
             workerTimers.setTimeout(
                 () => this.checkVRChatDebugLogging(),
                 60000
@@ -5483,9 +5482,15 @@ speechSynthesis.getVoices();
             this.isSteamVRRunning = isSteamVRRunning;
             console.log('isSteamVRRunning:', isSteamVRRunning);
         }
-        this.updateOpenVR();
     };
 
+    $app.methods.redrawWindow = function () {
+        this.redraw = true;
+        workerTimers.setTimeout(() => (this.redraw = false), 100);
+        console.log('redrawWindow');
+    };
+
+    $app.data.redraw = false;
     $app.data.debug = false;
     $app.data.debugWebRequests = false;
     $app.data.debugWebSocket = false;
@@ -5663,11 +5668,7 @@ speechSynthesis.getVoices();
             }
             return 0;
         });
-        wristFeed.splice(16);
-        AppApi.ExecuteVrFeedFunction(
-            'wristFeedUpdate',
-            JSON.stringify(wristFeed)
-        );
+        wristFeed.splice(15);
         this.applyUserDialogLocation();
         this.applyWorldDialogInstances();
         this.applyGroupDialogInstances();
@@ -6269,9 +6270,6 @@ speechSynthesis.getVoices();
                     if (playDesktopToast) {
                         this.displayDesktopToast(noty, message, image);
                     }
-                    if (playOverlayNotification) {
-                        this.displayOverlayNotification(noty, message, image);
-                    }
                 });
             } else {
                 if (playXSNotification) {
@@ -6279,9 +6277,6 @@ speechSynthesis.getVoices();
                 }
                 if (playDesktopToast) {
                     this.displayDesktopToast(noty, message, '');
-                }
-                if (playOverlayNotification) {
-                    this.displayOverlayNotification(noty, message, '');
                 }
             }
         }
@@ -6359,21 +6354,6 @@ speechSynthesis.getVoices();
             console.error(err);
         }
         return imageLocation;
-    };
-
-    $app.methods.displayOverlayNotification = function (
-        noty,
-        message,
-        imageFile
-    ) {
-        var image = '';
-        if (imageFile) {
-            image = `file:///${imageFile}`;
-        }
-        AppApi.ExecuteVrOverlayFunction(
-            'playNoty',
-            JSON.stringify({ noty, message, image })
-        );
     };
 
     $app.methods.playNotyTTS = function (noty, message) {
@@ -8575,10 +8555,6 @@ speechSynthesis.getVoices();
         var onlineFriendCount =
             this.friendsGroup0.length + this.friendsGroup1.length;
         if (onlineFriendCount !== this.onlineFriendCount) {
-            AppApi.ExecuteVrFeedFunction(
-                'updateOnlineFriendCount',
-                `${onlineFriendCount}`
-            );
             this.onlineFriendCount = onlineFriendCount;
         }
     };
@@ -9259,7 +9235,6 @@ speechSynthesis.getVoices();
 
             this.updateCurrentUserLocation();
             this.updateCurrentInstanceWorld();
-            this.updateVRLastLocation();
             this.getCurrentInstanceUserList();
             this.applyUserDialogLocation();
             this.applyWorldDialogInstances();
@@ -9616,7 +9591,6 @@ speechSynthesis.getVoices();
         };
         this.updateCurrentUserLocation();
         this.updateCurrentInstanceWorld();
-        this.updateVRLastLocation();
         this.getCurrentInstanceUserList();
         this.lastVideoUrl = '';
         this.lastResourceloadUrl = '';
@@ -9928,7 +9902,6 @@ speechSynthesis.getVoices();
                     };
                     this.removeQueuedInstance(gameLog.location);
                     this.updateCurrentUserLocation();
-                    this.updateVRLastLocation();
                     this.updateCurrentInstanceWorld();
                     this.applyUserDialogLocation();
                     this.applyWorldDialogInstances();
@@ -9998,7 +9971,6 @@ speechSynthesis.getVoices();
                             }
                         });
                 }
-                this.updateVRLastLocation();
                 this.getCurrentInstanceUserList();
                 var entry = {
                     created_at: gameLog.dt,
@@ -10022,7 +9994,6 @@ speechSynthesis.getVoices();
                     this.lastLocation.friendList.delete(gameLog.displayName);
                 }
                 this.photonLobbyAvatars.delete(userId);
-                this.updateVRLastLocation();
                 this.getCurrentInstanceUserList();
                 var entry = {
                     created_at: gameLog.dt,
@@ -10498,7 +10469,6 @@ speechSynthesis.getVoices();
     $app.methods.photonLobbyWatcherLoopStop = function () {
         this.photonLobbyWatcherLoop = false;
         this.photonLobbyTimeout = [];
-        AppApi.ExecuteVrOverlayFunction('updateHudTimeout', '[]');
     };
 
     $app.methods.photonLobbyWatcher = function () {
@@ -10512,9 +10482,6 @@ speechSynthesis.getVoices();
         var dtNow = Date.now();
         var bias2 = this.photonLastEvent7List + 1.5 * 1000;
         if (dtNow > bias2 || this.lastLocation.playerList.size <= 1) {
-            if (this.photonLobbyTimeout.length > 0) {
-                AppApi.ExecuteVrOverlayFunction('updateHudTimeout', '[]');
-            }
             this.photonLobbyTimeout = [];
             workerTimers.setTimeout(() => this.photonLobbyWatcher(), 500);
             return;
@@ -10575,10 +10542,6 @@ speechSynthesis.getVoices();
                 } else {
                     var filteredHudTimeout = hudTimeout;
                 }
-                AppApi.ExecuteVrOverlayFunction(
-                    'updateHudTimeout',
-                    JSON.stringify(filteredHudTimeout)
-                );
             }
             this.photonLobbyTimeout = hudTimeout;
             this.getCurrentInstanceUserList();
@@ -10710,35 +10673,6 @@ speechSynthesis.getVoices();
             ...input
         };
         this.photonEventTable.data.unshift(feed);
-        if (
-            this.photonEventTableTypeOverlayFilter.length > 0 &&
-            !this.photonEventTableTypeOverlayFilter.includes(feed.type)
-        ) {
-            return;
-        }
-        if (this.photonEventOverlay) {
-            if (
-                this.photonEventOverlayFilter === 'VIP' ||
-                this.photonEventOverlayFilter === 'Friends'
-            ) {
-                if (
-                    feed.userId &&
-                    ((this.photonEventOverlayFilter === 'VIP' && isFavorite) ||
-                        (this.photonEventOverlayFilter === 'Friends' &&
-                            isFriend))
-                ) {
-                    AppApi.ExecuteVrOverlayFunction(
-                        'addEntryHudFeed',
-                        JSON.stringify(feed)
-                    );
-                }
-            } else {
-                AppApi.ExecuteVrOverlayFunction(
-                    'addEntryHudFeed',
-                    JSON.stringify(feed)
-                );
-            }
-        }
     };
 
     $app.methods.getDisplayNameFromPhotonId = function (photonId) {
@@ -12310,7 +12244,6 @@ speechSynthesis.getVoices();
             remainingText: '',
             playing: false
         };
-        this.updateVrNowPlaying();
     };
 
     $app.methods.setNowPlaying = function (ctx) {
@@ -12345,7 +12278,6 @@ speechSynthesis.getVoices();
                 remainingText: ''
             };
         }
-        this.updateVrNowPlaying();
         if (!this.nowPlaying.playing && ctx.videoLength > 0) {
             this.nowPlaying.playing = true;
             this.updateNowPlaying();
@@ -12365,14 +12297,7 @@ speechSynthesis.getVoices();
         }
         np.remainingText = this.formatSeconds(np.length - np.elapsed);
         np.percentage = Math.round(((np.elapsed * 100) / np.length) * 10) / 10;
-        this.updateVrNowPlaying();
         workerTimers.setTimeout(() => this.updateNowPlaying(), 1000);
-    };
-
-    $app.methods.updateVrNowPlaying = function () {
-        var json = JSON.stringify(this.nowPlaying);
-        AppApi.ExecuteVrFeedFunction('nowPlayingUpdate', json);
-        AppApi.ExecuteVrOverlayFunction('nowPlayingUpdate', json);
     };
 
     $app.methods.formatSeconds = function (duration) {
@@ -13240,9 +13165,8 @@ speechSynthesis.getVoices();
                         }
                     } else {
                         // try fetch from local avatar history
-                        var avatar = await database.getCachedAvatarById(
-                            objectId
-                        );
+                        var avatar =
+                            await database.getCachedAvatarById(objectId);
                         if (avatar) {
                             ctx.ref = avatar;
                             ctx.name = avatar.name;
@@ -14400,10 +14324,6 @@ speechSynthesis.getVoices();
             this.udonExceptionLogging
         );
         this.updateSharedFeed(true);
-        this.updateVRConfigVars();
-        this.updateVRLastLocation();
-        AppApi.ExecuteVrOverlayFunction('notyClear', '');
-        this.updateOpenVR();
     };
     $app.methods.saveSortFavoritesOption = function () {
         this.getLocalWorldFavorites();
@@ -14426,7 +14346,6 @@ speechSynthesis.getVoices();
             'VRCX_notificationTTS',
             this.notificationTTS
         );
-        this.updateVRConfigVars();
     };
     $app.data.themeMode = configRepository.getString(
         'VRCX_ThemeMode',
@@ -14496,7 +14415,6 @@ speechSynthesis.getVoices();
             AppApi.ChangeTheme(0);
         }
         document.head.appendChild($appThemeStyle);
-        this.updateVRConfigVars();
         this.updatetrustColor();
     };
 
@@ -14584,11 +14502,6 @@ speechSynthesis.getVoices();
             'VRCX_PhotonEventOverlayFilter',
             this.photonEventOverlayFilter
         );
-        if (!this.timeoutHudOverlay) {
-            AppApi.ExecuteVrOverlayFunction('updateHudTimeout', '[]');
-        }
-        this.updateOpenVR();
-        this.updateVRConfigVars();
     };
     $app.data.logResourceLoad = configRepository.getBool(
         'VRCX_logResourceLoad',
@@ -14905,7 +14818,6 @@ speechSynthesis.getVoices();
             'VRCX_notificationPosition',
             this.notificationPosition
         );
-        this.updateVRConfigVars();
     };
 
     $app.data.youTubeApi = configRepository.getBool('VRCX_youtubeAPI', false);
@@ -14940,30 +14852,6 @@ speechSynthesis.getVoices();
         true
     );
 
-    $app.methods.updateVRConfigVars = function () {
-        var notificationTheme = 'relax';
-        if (this.isDarkMode) {
-            notificationTheme = 'sunset';
-        }
-        var VRConfigVars = {
-            overlayNotifications: this.overlayNotifications,
-            hideDevicesFromFeed: this.hideDevicesFromFeed,
-            hideCpuUsageFromFeed: this.hideCpuUsageFromFeed,
-            minimalFeed: this.minimalFeed,
-            notificationPosition: this.notificationPosition,
-            notificationTimeout: this.notificationTimeout,
-            photonOverlayMessageTimeout: this.photonOverlayMessageTimeout,
-            notificationTheme,
-            backgroundEnabled: this.vrBackgroundEnabled,
-            dtHour12: this.dtHour12,
-            pcUptimeOnFeed: this.pcUptimeOnFeed,
-            appLanguage: this.appLanguage
-        };
-        var json = JSON.stringify(VRConfigVars);
-        AppApi.ExecuteVrFeedFunction('configUpdate', json);
-        AppApi.ExecuteVrOverlayFunction('configUpdate', json);
-    };
-
     $app.methods.isRpcWorld = function (location) {
         var rpcWorlds = [
             'wrld_f20326da-f1ac-45fc-a062-609723b097b1',
@@ -14985,38 +14873,7 @@ speechSynthesis.getVoices();
         return false;
     };
 
-    $app.methods.updateVRLastLocation = function () {
-        var progressPie = false;
-        if (this.progressPie) {
-            progressPie = true;
-            if (this.progressPieFilter) {
-                if (!this.isRpcWorld(this.lastLocation.location)) {
-                    progressPie = false;
-                }
-            }
-        }
-        var onlineFor = '';
-        if (!this.hideUptimeFromFeed) {
-            onlineFor = API.currentUser.$online_for;
-        }
-        var lastLocation = {
-            date: this.lastLocation.date,
-            location: this.lastLocation.location,
-            name: this.lastLocation.name,
-            playerList: Array.from(this.lastLocation.playerList.values()),
-            friendList: Array.from(this.lastLocation.friendList.values()),
-            progressPie,
-            onlineFor
-        };
-        var json = JSON.stringify(lastLocation);
-        AppApi.ExecuteVrFeedFunction('lastLocationUpdate', json);
-        AppApi.ExecuteVrOverlayFunction('lastLocationUpdate', json);
-    };
-
     $app.methods.vrInit = function () {
-        this.updateVRConfigVars();
-        this.updateVRLastLocation();
-        this.updateVrNowPlaying();
         this.updateSharedFeed(true);
         this.onlineFriendCount = 0;
         this.updateOnlineFriendCoutner();
@@ -15069,34 +14926,6 @@ speechSynthesis.getVoices();
                 }
             }
         });
-    };
-
-    $app.methods.updateOpenVR = function () {
-        if (
-            this.openVR &&
-            this.isSteamVRRunning &&
-            ((this.isGameRunning && !this.isGameNoVR) || this.openVRAlways)
-        ) {
-            var hmdOverlay = false;
-            if (
-                this.overlayNotifications ||
-                this.progressPie ||
-                this.photonEventOverlay ||
-                this.timeoutHudOverlay
-            ) {
-                hmdOverlay = true;
-            }
-            // active, hmdOverlay, wristOverlay, menuButton, overlayHand
-            AppApi.SetVR(
-                true,
-                hmdOverlay,
-                this.overlayWrist,
-                this.overlaybutton,
-                this.overlayHand
-            );
-        } else {
-            AppApi.SetVR(false, false, false, false, 0);
-        }
     };
 
     $app.methods.getTTSVoiceName = function () {
@@ -15490,7 +15319,6 @@ speechSynthesis.getVoices();
                             'VRCX_photonOverlayMessageTimeout',
                             this.photonOverlayMessageTimeout
                         );
-                        this.updateVRConfigVars();
                     }
                 }
             }
@@ -22837,8 +22665,6 @@ speechSynthesis.getVoices();
             'VRCX_progressPieFilter',
             this.progressPieFilter
         );
-        this.updateVRLastLocation();
-        this.updateOpenVR();
     };
 
     $app.methods.showYouTubeApiDialog = function () {
@@ -24338,14 +24164,6 @@ speechSynthesis.getVoices();
         } else {
             this.customUserTags.delete(data.UserId);
         }
-        var feedUpdate = {
-            userId: data.UserId,
-            colour: data.TagColour
-        };
-        AppApi.ExecuteVrOverlayFunction(
-            'updateHudFeedTag',
-            JSON.stringify(feedUpdate)
-        );
         var ref = API.cachedUsers.get(data.UserId);
         if (typeof ref !== 'undefined') {
             ref.$customTag = data.Tag;
@@ -24787,7 +24605,6 @@ speechSynthesis.getVoices();
         if (typeof this.dtHour12 !== 'undefined') {
             if (hour12 !== this.dtHour12) {
                 configRepository.setBool('VRCX_dtHour12', this.dtHour12);
-                this.updateVRConfigVars();
             }
             var hour12 = this.dtHour12;
         }
@@ -28362,9 +28179,8 @@ speechSynthesis.getVoices();
             return;
         }
         try {
-            var loggingEnabled = await AppApi.GetVRChatRegistryKey(
-                'LOGGING_ENABLED'
-            );
+            var loggingEnabled =
+                await AppApi.GetVRChatRegistryKey('LOGGING_ENABLED');
             if (loggingEnabled === null) {
                 // key not found
                 return;

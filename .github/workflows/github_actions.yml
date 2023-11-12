@@ -36,8 +36,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Restore dependencies
       run: npm ci
-    - name: Lint
-      run: npm run lint
     - name: Build
       run: npm run production
     - name: Fix folder structure

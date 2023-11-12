@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -112,14 +112,6 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Dotnet\OpenVR\openvr_api.cs" />
-    <Compile Include="Dotnet\Overlay\OffScreenBrowser.cs" />
-    <Compile Include="Dotnet\Overlay\VRCXVR.cs" />
-    <Compile Include="Dotnet\Overlay\VRForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Dotnet\Overlay\VRForm.Designer.cs">
-      <DependentUpon>VRForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Dotnet\ProcessMonitor.cs" />
     <Compile Include="Dotnet\Program.cs" />
     <Compile Include="Dotnet\PWI\WorldDatabase.cs" />
@@ -144,10 +136,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Dotnet\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Dotnet\Overlay\VRForm.resx">
-      <DependentUpon>VRForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -205,13 +193,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CefSharp.Common">
-      <Version>119.1.20</Version>
+      <Version>104.4.240</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.OffScreen">
-      <Version>119.1.20</Version>
+      <Version>104.4.240</Version>
     </PackageReference>
     <PackageReference Include="CefSharp.WinForms">
-      <Version>119.1.20</Version>
+      <Version>104.4.240</Version>
     </PackageReference>
     <PackageReference Include="DiscordRichPresence">
       <Version>1.2.1.24</Version>

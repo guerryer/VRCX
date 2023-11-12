@@ -12,6 +12,7 @@ html
         link(rel="stylesheet" href="flags.css")
     body
         .x-app#x-app(style="display:none" @dragenter.prevent @dragover.prevent @drop.prevent)
+            .redraw(v-if="redraw" style="position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;z-index:10000")
             //- login
             include ./mixins/loginPage.pug
             +loginPage()

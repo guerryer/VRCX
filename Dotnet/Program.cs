@@ -152,11 +152,9 @@ namespace VRCX
 
             CefService.Instance.Init();
             IPCServer.Instance.Init();
-            VRCXVR.Instance.Init();
             Application.Run(new MainForm());
             logger.Info("{0} Exiting...", Version);
             WebApi.Instance.SaveCookies();
-            VRCXVR.Instance.Exit();
             CefService.Instance.Exit();
 
             AutoAppLaunchManager.Instance.Exit();
