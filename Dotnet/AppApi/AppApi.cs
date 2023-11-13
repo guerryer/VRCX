@@ -443,5 +443,11 @@ namespace VRCX
 
             return null;
         }
+        
+        // Linux wine moment
+        public void RedrawWindow()
+        {
+            ExecuteAppFunction("redrawWindow", "");
+        }
     }
 }
