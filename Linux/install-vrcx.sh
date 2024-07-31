@@ -67,7 +67,7 @@ fi
 
 cd $WINEPREFIX/drive_c/vrcx
 curl -L $download_url -o vrcx.zip
-unzip -uoq vrcx.zip
+unzip -uq vrcx.zip
 rm vrcx.zip
 
 echo '#!/usr/bin/env bash 
